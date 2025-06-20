@@ -9,6 +9,20 @@ spec:
   resources:
     requests:
       storage: 512Mi
+  storageClassName: manual
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: report-pv
+spec:
+  capacity:
+    storage: 512Mi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  hostPath:
+    path: "/mnt/data/report"
 ---
 apiVersion: apps/v1
 kind: Deployment

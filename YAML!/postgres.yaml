@@ -9,6 +9,19 @@ stringData:
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: postgres
 ---
+  # --- PersistentVolumeClaim for PostgreSQL data ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-volume-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 5Gi
+---
 # --- PersistentVolume for PostgreSQL data ---
 apiVersion: v1
 kind: PersistentVolume

@@ -19,6 +19,21 @@ spec:
   resources:
     requests:
       storage: 1Gi
+  storageClassName: manual
+---
+# --- PersistentVolume for RabbitMQ ---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: rabbitmq-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  hostPath:
+    path: "/mnt/data/rabbitmq"
 ---
 # --- Deployment for RabbitMQ ---
 apiVersion: apps/v1
