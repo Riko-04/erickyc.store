@@ -23,6 +23,9 @@ spec:
   storageClassName: manual
   hostPath:
     path: "/mnt/data/kyc"
+  claimRef:
+    name: kyc-pvc
+    namespace: default
 ---
 # --- Deployment for kyc-service ---
 apiVersion: apps/v1

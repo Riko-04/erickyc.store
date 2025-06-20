@@ -34,6 +34,9 @@ spec:
   storageClassName: manual
   hostPath:
     path: "/mnt/data/rabbitmq"
+  claimRef:
+    name: rabbitmq-pvc
+    namespace: default
 ---
 # --- Deployment for RabbitMQ ---
 apiVersion: apps/v1
