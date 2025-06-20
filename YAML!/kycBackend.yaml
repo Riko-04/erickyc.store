@@ -1,0 +1,81 @@
+# --- PVC for persistent storage ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kyc-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+# --- Deployment for kyc-service ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kyc-service
+  labels:
+    app: kyc-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kyc-service
+  template:
+    metadata:
+      labels:
+        app: kyc-service
+    spec:
+      containers:
+        - name: kyc-service
+          image: riko04/kyc-backend:latest
+          ports:
+            - containerPort: 8081
+          env:
+            - name: DB_HOST
+              value: postgres
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: kyc-storage
+              mountPath: /app/data  
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "250m"
+      volumes:
+        - name: kyc-storage
+          persistentVolumeClaim:
+            claimName: kyc-pvc
+---
+# --- Service for kyc-service ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kyc-service
+spec:
+  type: ClusterIP
+  selector:
+    app: kyc-service
+  ports:
+    - port: 8081
+      targetPort: 8081

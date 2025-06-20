@@ -1,0 +1,77 @@
+daemonset:
+  enabled: true
+  hostNetworking: false
+
+  filebeatConfig:
+    filebeat.yml: |
+      filebeat.inputs:
+        - type: container
+          paths:
+            - /var/log/containers/*.log
+          processors:
+            - add_kubernetes_metadata:
+                host: ${NODE_NAME}
+                matchers:
+                  - logs_path:
+                      logs_path: "/var/log/containers/"
+
+      output.logstash:
+        hosts: ["logstash-logstash:5044"]
+      queue.spool:
+        file:
+          path: "${path.data}/spool"
+        size: 1024MiB
+      queue.mem:
+        events: 256
+        flush.min_events: 128
+        flush.timeout: 10s
+
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "150m"
+      memory: "100Mi"
+
+  securityContext:
+    runAsUser: 0
+    privileged: false
+
+  nodeSelector: {}
+  tolerations: []
+
+  # Ensure Filebeat registry data is persisted across restarts
+  extraVolumes:
+    - name: filebeat-data
+      hostPath:
+        path: /var/lib/filebeat
+        type: DirectoryOrCreate
+  extraVolumeMounts:
+    - name: filebeat-data
+      mountPath: /usr/share/filebeat/data
+
+  livenessProbe:
+    exec:
+      command:
+        - sh
+        - -c
+        - curl --fail 127.0.0.1:5066
+    initialDelaySeconds: 10
+    periodSeconds: 20
+    timeoutSeconds: 5
+
+  readinessProbe:
+    exec:
+      command:
+        - sh
+        - -c
+        - filebeat test output
+    initialDelaySeconds: 10
+    periodSeconds: 20
+    timeoutSeconds: 5
+
+hostPathRoot: /var/lib
+image: "docker.elastic.co/beats/filebeat"
+imageTag: "8.5.1"
+imagePullPolicy: "IfNotPresent"

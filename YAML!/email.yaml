@@ -1,0 +1,61 @@
+# Secret for SMTP credentials
+apiVersion: v1
+kind: Secret
+metadata:
+  name: email-service-secret
+type: Opaque
+stringData:
+  email-username: echoge2003@gmail.com
+  email-password: msfj ygdo knmr hxer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: email-service
+  labels:
+    app: kyc-email-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kyc-email-service
+  template:
+    metadata:
+      labels:
+        app: kyc-email-service
+    spec:
+      containers:
+        - name: email-service
+          image: riko04/email-service:latest
+          ports:
+            - containerPort: 8082
+          env:
+            - name: EMAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: email-service-secret
+                  key: email-username
+            - name: EMAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: email-service-secret
+                  key: email-password
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kyc-email-service
+spec:
+  type: ClusterIP
+  selector:
+    app: kyc-email-service
+  ports:
+    - port: 8082
+      targetPort: 8082

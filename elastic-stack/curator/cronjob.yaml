@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: curator-delete-old-indices
+spec:
+  schedule: "0 3 * * *"  # Daily at 3AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: curator
+              image: bitnami/elasticsearch-curator:latest
+              command:
+                - curator
+                - --config
+                - /etc/curator/config.yml
+                - /etc/curator/action.yml
+              volumeMounts:
+                - name: config
+                  mountPath: /etc/curator
+              env:
+                - name: ES_HOST
+                  value: "elasticsearch-master"
+                - name: ES_PORT
+                  value: "9200"
+          restartPolicy: OnFailure
+          volumes:
+            - name: config
+              configMap:
+                name: curator-config

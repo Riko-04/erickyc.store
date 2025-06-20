@@ -1,0 +1,70 @@
+clusterName: "elasticsearch"
+nodeGroup: "master"
+roles:
+  - master
+  - data
+  - ingest
+replicas: 1
+minimumMasterNodes: 1
+
+esJavaOpts: "-Xmx512m -Xms512m"
+extraEnvs:
+  - name: ELASTIC_PASSWORD
+    value: "elastic"
+
+resources:
+  requests:
+    cpu: "150m"
+    memory: "125Mi"
+  limits:
+    cpu: "200m"
+    memory: "250Mi"
+
+volumeClaimTemplate:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 5Gi  
+
+persistence:
+  enabled: true
+
+networkHost: "0.0.0.0"
+protocol: http
+httpPort: 9200
+transportPort: 9300
+
+enableServiceLinks: false
+sysctlVmMaxMapCount: 262144
+
+podSecurityContext:
+  fsGroup: 1000
+  runAsUser: 1000
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  runAsNonRoot: true
+  runAsUser: 1000
+
+readinessProbe:
+  failureThreshold: 3
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  successThreshold: 3
+  timeoutSeconds: 5
+
+clusterHealthCheckParams: "wait_for_status=green&timeout=1s"
+
+updateStrategy: RollingUpdate
+
+image: "docker.elastic.co/elasticsearch/elasticsearch"
+imageTag: "8.5.1"
+imagePullPolicy: "IfNotPresent"
+
+ingress:
+  enabled: false
+
+sysctlInitContainer:
+  enabled: true

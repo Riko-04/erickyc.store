@@ -1,0 +1,49 @@
+# 1. Network I/O Pressure
+# To approximate pressure, we can look at network I/O utilization across nodes:
+rate(node_network_receive_bytes_total[5m]) + rate(node_network_transmit_bytes_total[5m])
+
+# If you're using kubelet-based metrics:
+rate(container_network_receive_bytes_total[5m]) + rate(container_network_transmit_bytes_total[5m])
+
+
+
+# 2. Cluster CPU Usage
+# This gives total CPU cores used across the cluster:
+sum(rate(container_cpu_usage_seconds_total{image!=""}[5m]))
+
+# For per-node view:
+sum by (node) (rate(container_cpu_usage_seconds_total{image!=""}[5m]))
+
+
+
+# 3. Cluster Memory Usage
+# Memory currently in use (working set):
+sum(container_memory_working_set_bytes{image!=""})
+
+# To calculate as percentage of allocatable:
+sum(container_memory_working_set_bytes{image!=""}) 
+/ 
+sum(kube_node_status_allocatable_memory_bytes) * 100
+
+
+
+# 4. Cluster Filesystem Usage
+# Disk used vs capacity:
+sum(node_filesystem_size_bytes{fstype!="tmpfs", fstype!="overlay"}) 
+-
+sum(node_filesystem_free_bytes{fstype!="tmpfs", fstype!="overlay"})
+
+# As a percentage:
+(sum(node_filesystem_size_bytes{fstype!="tmpfs", fstype!="overlay"}) 
+- 
+sum(node_filesystem_free_bytes{fstype!="tmpfs", fstype!="overlay"})) 
+/ 
+sum(node_filesystem_size_bytes{fstype!="tmpfs", fstype!="overlay"}) * 100
+
+
+
+# 5. Pods CPU Usage
+# CPU used per pod:
+sum by (pod) (rate(container_cpu_usage_seconds_total{image!=""}[5m]))
+sum by (namespace) (rate(container_cpu_usage_seconds_total{image!=""}[5m]))
+
