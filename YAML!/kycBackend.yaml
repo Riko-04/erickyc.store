@@ -10,6 +10,7 @@ spec:
     requests:
       storage: 1Gi
   storageClassName: manual
+  volumeName: kyc-pv
 ---
 apiVersion: v1
 kind: PersistentVolume
