@@ -22,6 +22,17 @@ spec:
                 port:
                   number: 80
 
+    - host: www.erickyc.store
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
+
     - host: reports.erickyc.store
       http:
         paths:
