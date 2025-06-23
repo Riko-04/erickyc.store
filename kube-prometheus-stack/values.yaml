@@ -16,7 +16,7 @@ defaultRules:
 prometheus:
   enabled: true
   prometheusSpec:
-    retention: 2d
+    retention: 1d
     scrapeInterval: 30s
     evaluationInterval: 30s
     resources:
@@ -57,6 +57,21 @@ grafana:
     port: 3000
   ingress:
     enabled: false
+  grafana.ini:
+    server:
+      serve_from_sub_path: true
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Loki
+          type: loki
+          access: proxy
+          url: http://loki.default.svc.cluster.local:3100
+          isDefault: false
+          jsonData:
+            maxLines: 1000
+
 
 alertmanager:
   enabled: true
@@ -117,6 +132,34 @@ kubeStateMetrics:
       memory: 110Mi
 
 prometheusOperator:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 100Mi
+    limits:
+      cpu: 100m
+      memory: 110Mi
+
+# Loki configuration
+loki:
+  enabled: true
+  isDefault: false
+  persistence:
+    enabled: true
+    size: 1Gi
+  resources:
+    requests:
+      cpu: 50m
+      memory: 100Mi
+    limits:
+      cpu: 100m
+      memory: 110Mi
+
+# Promtail configuration
+promtail:
+  enabled: true
+  serviceMonitor:
+    enabled: true
   resources:
     requests:
       cpu: 50m
